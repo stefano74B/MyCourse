@@ -21,7 +21,7 @@ namespace MyCourse
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             // if (env.IsDevelopment())
-            if (env.IsEnvironment("Production"))
+            if (env.IsEnvironment("Development"))
             {
                 app.UseDeveloperExceptionPage();
             }
