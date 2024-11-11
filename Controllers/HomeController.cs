@@ -11,6 +11,7 @@ namespace MyCourse.Controllers
         
         public IActionResult Index()
         {
+            //return Content("HOME");
             return View();
         }
     }
