@@ -11,7 +11,7 @@ namespace MyCourse.Models.Services.Application
     public class CourseService
     {
         
-        public List<CourseViewModel> GetServices()
+        public List<CourseViewModel> GetCourses()
         {
             var courseList = new List<CourseViewModel>();
             var rand = new Random();
@@ -26,7 +26,7 @@ namespace MyCourse.Models.Services.Application
                     FullPrice = new Money(Currency.EUR, rand.NextDouble() > 0.5 ? price : price - 1),
                     Author = "Nome cognome",
                     Rating = rand.Next(10, 50) / 10.0,
-                    ImagePath = "/logo.svg"
+                    ImagePath = "~/logo_01.jpg"
                 };
                 courseList.Add(course);
             }

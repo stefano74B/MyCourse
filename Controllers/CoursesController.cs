@@ -14,7 +14,7 @@ namespace MyCourse.Controllers
         public IActionResult Index()
         {
             var courseService = new CourseService();
-            List<CourseViewModel> courses = courseService.GetServices();
+            List<CourseViewModel> courses = courseService.GetCourses();
             return View(courses);
         }
 
