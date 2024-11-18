@@ -1,7 +1,8 @@
+@model CourseDetailViewModel
 <section class="course-info">
   <div class="row">
     <div class="col-md-9">
-      <h1>Titolo del corso</h1>
+      <h1>@Model.Title</h1>
     </div>
     <div class="col-md-3 d-flex align-items-end">
         <a href="#" class="btn btn-warning btn-lg btn-block subscribe-course">Iscriviti</a>
@@ -9,18 +10,61 @@
   </div>
   <div class="row">
     <div class="col-md-9">
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quasi commodi blanditiis vero eveniet, fugit ducimus ad qui ab nulla, officia architecto id? Veniam incidunt voluptatibus voluptas pariatur rerum voluptates possimus!</p>
-      <p>Adipisci similique repellendus sunt atque ipsa nam repudiandae quia sint accusantium. Perferendis rerum rem sequi corporis, aliquam incidunt alias expedita nulla unde iure tenetur vel, temporibus molestiae aperiam tempora similique?</p>
-      <p>Nesciunt nam repudiandae dicta laborum dignissimos, accusamus placeat rem eveniet? Corporis possimus veniam magni? Saepe repudiandae tempora odit quasi qui dolorem enim quod tempore culpa sunt libero quis, adipisci expedita.</p>
-      <p>Labore id exercitationem, incidunt non accusantium autem, aut optio voluptates nisi odio fuga consequuntur quas ea vitae? Sint, culpa. Iure earum ad quos vel! Illum praesentium beatae eos nulla consequuntur?</p>
-      <p>Quis in mollitia perspiciatis eligendi nesciunt ipsum facilis, illum eos vel, quaerat eius! Aut, quis expedita impedit possimus explicabo quo beatae eos reiciendis aspernatur sed nam eligendi omnis facere laborum!</p>
+      <p>@Model.Description</p>
     </div>
     <div class="col-md-3">
-
+      <aside>
+        <author>di @Model.Author</author>
+        <div class="rating" title="@Model.Rating">
+            @for(int i = 1; i <= 5; i++)
+            {
+                if (Model.Rating >= i)
+                {
+                    <i class="fas fa-star"></i>
+                }
+                else if (Model.Rating > i - 1)
+                {
+                    <i class="fas fa-star-half-alt"></i>
+                }
+                else
+                {
+                    <i class="far fa-star"></i>
+                }
+            }
+        </div>
+        <div class="price">
+            @Model.CurrentPrice
+            @if(!Model.CurrentPrice.Equals(Model.FullPrice)) {
+                <br><s>@Model.FullPrice</s>
+            }
+        </div>
+        <img src="@Url.Content(Model.ImagePath)" width="100" class="img-fluid course-image" alt="@Model.Title">
+    </aside>
     </div>
   </div>
 </section>
 
 <section class="course-lessons">
-
+	<h2>Lezioni (@Model.Lessons.Count)</h2>
+	@foreach (var lesson in Model.Lessons)
+	{
+    <hr>
+    <div class="row">
+      <div class="col-md-9 d-flex align-items-center">
+          <a href="#">@lesson.Title</a>
+      </div>
+      <div class="col-md-3 d-flex align-items-center lesson-duration">
+        <i class="far fa-clock"></i><time>@lesson.Duration.ToString("m'm 's's'")</time>
+      </div>
+    </div>
+	}
+  <hr>
+  <div class="row course-duration">
+  <div class="col-md-9 d-flex align-items-center">
+          Totale
+      </div>
+      <div class="col-md-3 d-flex align-items-center">
+          <i class="far fa-clock"></i><time>@Model.TotalCourseDuration.ToString("m'm 's's'")</time>
+      </div>
+  </div>
 </section>

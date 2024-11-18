@@ -18,9 +18,11 @@ namespace MyCourse.Controllers
             return View(courses);
         }
 
-        public IActionResult Detail(string id)
+        public IActionResult Detail(int id)
         {
-            return View();
+            var courseService = new CourseService();
+            CourseDetailViewModel viewModel = courseService.GetCourse(id);
+            return View(viewModel);
         }
         
     }
