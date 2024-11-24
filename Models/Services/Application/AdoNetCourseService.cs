@@ -18,7 +18,7 @@ namespace MyCourse.Models.Services.Application
 
         public List<CourseViewModel> GetCourses()
         {
-            string query = "SELECT * FROM Courses";
+            string query = "SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses";
             DataSet dataSet = db.Query(query);
             throw new System.NotImplementedException();
         }
