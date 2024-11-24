@@ -18,14 +18,41 @@ namespace MyCourse.Models.Services.Application
 
         public List<CourseViewModel> GetCourses()
         {
-            string query = "SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses";
+            FormattableString query = $"SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses";
             DataSet dataSet = db.Query(query);
-            throw new System.NotImplementedException();
+            var dataTable = dataSet.Tables[0];
+            var courseList = new List<CourseViewModel>();
+            foreach(DataRow courseRow in dataTable.Rows)
+            {
+                CourseViewModel course = CourseViewModel.FromDataRow(courseRow);
+                courseList.Add(course);
+            }
+            return courseList;
         }
 
         public CourseDetailViewModel GetCourse(int id)
         {
-            throw new System.NotImplementedException();
+            FormattableString query = $@"SELECT Id, Title, Description, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Id={id}
+            ; SELECT Id, Title, Description, Duration FROM Lessons WHERE CourseId={id}";
+            DataSet dataSet = db.Query(query);
+
+            // Course
+            var courseTable = dataSet.Tables[0];
+            if (courseTable.Rows.Count != 1) {
+                throw new InvalidOperationException($"Non è stata trovata 1 riga corrispondente per il corso {id}");
+            }
+            var courseRow = courseTable.Rows[0];
+            var courseDetailViewModel = CourseDetailViewModel.FromDataRow(courseRow);
+
+            // Course lessons
+            var lessonDatatable = dataSet.Tables[1];
+
+            foreach(DataRow lessonRow in lessonDatatable.Rows) {
+                LessonViewModel lessonViewModel = LessonViewModel.FromDataRow(lessonRow);
+                courseDetailViewModel.Lessons.Add(lessonViewModel);
+            }
+
+            return courseDetailViewModel;
         }
     }
 }
