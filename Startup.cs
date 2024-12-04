@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
 
@@ -29,7 +30,14 @@ namespace MyCourse
             // services.AddTransient<ICourseService, AdoNetCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
 
-            services.AddDbContext<MyCourseDbContext>();
+            // services.AddDbContext<MyCourseDbContext>();
+
+            // preferibile a comando remmato sopra, in quanto può utilizzare context già pronti accorciando i tempi
+            services.AddDbContextPool<MyCourseDbContext>(optionsBuilder => 
+            {
+                #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                optionsBuilder.UseSqlite("Data Source=Data/MyCourse.db");                
+            }); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
