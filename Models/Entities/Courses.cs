@@ -23,7 +23,7 @@ namespace MyCourse.Models.Entities
             Lessons = new HashSet<Lesson>();
         }
 
-        public long Id { get; private set; }
+        public int Id { get; private set; }
         public string Title { get; private set; }
         public string Description { get; private set; }
         public string ImagePath { get; private set; }
@@ -44,7 +44,7 @@ namespace MyCourse.Models.Entities
 
         public void ChangePrices(Money newFullPrice, Money newDiscountPrice)
         {
-            if (newFullPrice == null || newDiscountPrice = null)
+            if (newFullPrice == null || newDiscountPrice == null)
             {
                 throw new ArgumentException("I prezzi non possono essere nulli");
             }

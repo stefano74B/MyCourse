@@ -2,8 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using MyCourse.Models.ValueObjects;
+using MyCourse.Models.Entities;
 
-namespace MyCourse.Models.Entities
+namespace MyCourse.Models.Services.Infrastructure
 {
     public partial class MyCourseDbContext : DbContext
     {
@@ -23,7 +24,7 @@ namespace MyCourse.Models.Entities
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+                #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
                 optionsBuilder.UseSqlite("Data Source=Data/MyCourse.db");
             }
         }
@@ -112,7 +113,7 @@ namespace MyCourse.Models.Entities
                 // in quanto basta evidenziarlo in una delle due tabelle relazionate
                 // in questo caso si invertono 'One' e 'Many'
                 entity.HasOne(lesson => lesson.Course)
-                      .WithMany(course => course.Lessons) 
+                      .WithMany(course => course.Lessons);
 
                 #region Mapping generato in automatico dal tool di reverse engineering
                     
