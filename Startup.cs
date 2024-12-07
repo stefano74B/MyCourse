@@ -7,15 +7,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
+using MyCourse.Models.Options;
 
 namespace MyCourse
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration)
+        {
+            this.Configuration = configuration; 
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -26,8 +35,8 @@ namespace MyCourse
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
             // AddSingleton crea una sola istanza e la inietta a tutti i componenti che ne hanno bisogno, anche in richieste http diverse
             
-            services.AddTransient<ICourseService, EfCoreCourseService>();
-            // services.AddTransient<ICourseService, AdoNetCourseService>();
+            // services.AddTransient<ICourseService, EfCoreCourseService>();
+            services.AddTransient<ICourseService, AdoNetCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
 
             // services.AddDbContext<MyCourseDbContext>();
@@ -35,9 +44,14 @@ namespace MyCourse
             // preferibile a comando remmato sopra, in quanto può utilizzare context già pronti accorciando i tempi
             services.AddDbContextPool<MyCourseDbContext>(optionsBuilder => 
             {
-                #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlite("Data Source=Data/MyCourse.db");                
+                string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default");
+                optionsBuilder.UseSqlite(connectionString);                
             }); 
+
+            // options
+            services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
+            services.Configure<CoursesOptions>(Configuration.GetSection("Courses"));
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

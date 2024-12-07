@@ -4,11 +4,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using MyCourse.Models.Options;
 
 namespace MyCourse.Models.Services.Infrastructure
 {
     public class SqliteDatabaseAccessor : IDatabaseAccessor
     {
+        private readonly IOptionsMonitor<ConnectionStringsOptions> connectionStringsOptions;
+
+        public SqliteDatabaseAccessor(IOptionsMonitor<ConnectionStringsOptions> connectionStringsOptions)
+        {
+            this.connectionStringsOptions = connectionStringsOptions;
+        }
+
         public async Task<DataSet> QueryAsync(FormattableString formattableQuery)
         {
 
@@ -23,7 +33,8 @@ namespace MyCourse.Models.Services.Infrastructure
             }
             string query = formattableQuery.ToString();            
 
-            using(var conn = new SqliteConnection("Data Source=Data/MyCourse.db"))
+            string connectionString = connectionStringsOptions.CurrentValue.Default;
+            using(var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();
                 using(var cmd = new SqliteCommand(query, conn))
