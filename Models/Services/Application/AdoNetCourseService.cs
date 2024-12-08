@@ -45,7 +45,7 @@ namespace MyCourse.Models.Services.Application
         {
             // logging
             // Critical, Error, Warning, Information, Debug, Trace
-            logger.LogInformation("Course {id} requested",id);
+            logger.LogInformation("Course {id} requested", id);
 
             FormattableString query = $@"SELECT Id, Title, Description, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Id={id}
             ; SELECT Id, Title, Description, Duration FROM Lessons WHERE CourseId={id}";
