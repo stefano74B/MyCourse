@@ -38,6 +38,7 @@ namespace MyCourse
             // services.AddTransient<ICourseService, EfCoreCourseService>();
             services.AddTransient<ICourseService, AdoNetCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
+            services.AddTransient<ICachedCourseService, MemoryCacheCourseService>();
 
             // services.AddDbContext<MyCourseDbContext>();
 
