@@ -19,6 +19,11 @@ namespace MyCourse
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                // .ConfigureLogging(logging =>
+                // {
+                //     logging.ClearProviders(); // Rimuove i provider predefiniti se vuoi ricominciare da zero
+                //     logging.AddConsole(); // Aggiunge il provider per la console
+                // })
                 .UseStartup<Startup>();
     }
 }

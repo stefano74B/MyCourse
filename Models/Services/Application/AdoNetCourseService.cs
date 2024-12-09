@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using MyCourse.Models.ViewModels;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
+using MyCourse.Models.Exceptions;
 
 namespace MyCourse.Models.Services.Application
 {
@@ -54,7 +55,8 @@ namespace MyCourse.Models.Services.Application
             // Course
             var courseTable = dataSet.Tables[0];
             if (courseTable.Rows.Count != 1) {
-                throw new InvalidOperationException($"Non è stata trovata 1 riga corrispondente per il corso {id}");
+                logger.LogWarning("Course {id} not found", id);
+                throw new CourseNotFoundException(id);
             }
             var courseRow = courseTable.Rows[0];
             var courseDetailViewModel = CourseDetailViewModel.FromDataRow(courseRow);

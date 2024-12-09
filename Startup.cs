@@ -68,6 +68,8 @@ namespace MyCourse
                     string filePath = Path.Combine(env.ContentRootPath, "bin/reload.txt");
                     File.WriteAllText(filePath, DateTime.Now.ToString());
                 });
+            } else {
+                app.UseExceptionHandler("/Error");
             }
 
             app.UseStaticFiles();
