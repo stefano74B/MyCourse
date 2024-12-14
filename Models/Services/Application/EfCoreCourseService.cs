@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using MyCourse.Models.Entities;
 
 namespace MyCourse.Models.Services.Application 
 {
@@ -17,9 +18,11 @@ namespace MyCourse.Models.Services.Application
             this.dbContext = dbContext; 
         }
         
-        public async Task<List<CourseViewModel>> GetCoursesAsync()
+        public async Task<List<CourseViewModel>> GetCoursesAsync(string search)
         {
+            search = search ?? "";
             IQueryable<CourseViewModel> queryLinq = dbContext.Courses
+                .Where(course => course.Title.Contains(search))
                 .AsNoTracking()
                 .Select(course => CourseViewModel.FromEntity(course));
 
