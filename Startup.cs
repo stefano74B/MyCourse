@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
@@ -29,7 +30,23 @@ namespace MyCourse
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddResponseCaching(); // utilizziamo dei servi di caching
+
+            services.AddMvc(options => {
+                var homeProfile = new CacheProfile();
+                // se i nomi non corrispondono devo utilizzare le due righe qui sotto
+                // homeProfile.Duration = Configuration.GetValue<int>("ResponseCache:Home:Duration");
+                // homeProfile.Location = Configuration.GetValue<ResponseCacheLocation>("ResponseCache:Home:Location");
+                
+                // con questo indichiamo che nel servizio di caching bisogna distinguere anche le chiavi passate all'URL (altrimenti page 2 per lui sarebbe come page 1)
+                //andiamo però a indicare anche questo in appsettings.json
+                // homeProfile.VaryByQueryKeys = new string [] {"page"}; 
+
+                // se i nomi corrispondono uso questa riga
+                Configuration.Bind("ResponseCache:Home", homeProfile);
+                
+                options.CacheProfiles.Add("Home", homeProfile);
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             
             // AddTransient crea nuove istanze del serivizio ogni volta che un componente ne ha bisogno e dopo che sono state utilizzate le rimuove.
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
@@ -52,6 +69,7 @@ namespace MyCourse
             // options
             services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<CoursesOptions>(Configuration.GetSection("Courses"));
+            services.Configure<MemoryCacheOptions>(Configuration.GetSection("MemoryCache"));
             
         }
 
@@ -74,6 +92,8 @@ namespace MyCourse
             }
 
             app.UseStaticFiles();
+
+            app.UseResponseCaching(); // utilizza il caching di ASP.NET che permette di salvare in memoria per un tempo stabilito una view
 
             // app.UseMvcWithDefaultRoute();
             app.UseMvc(routeBuilder => {
