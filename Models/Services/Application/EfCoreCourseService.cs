@@ -2,27 +2,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.ViewModels;
-using Microsoft.EntityFrameworkCore;
+using MyCourse.Models.Options;
 using MyCourse.Models.Entities;
 
 namespace MyCourse.Models.Services.Application 
 {
     public class EfCoreCourseService : ICourseService
     {
+        private readonly ILogger<AdoNetCourseService> logger;
+        private readonly IOptionsMonitor<CoursesOptions> coursesOptions;
         private readonly MyCourseDbContext dbContext;
 
-        public EfCoreCourseService(MyCourseDbContext dbContext)
+        public EfCoreCourseService(ILogger<AdoNetCourseService> logger, IOptionsMonitor<CoursesOptions> coursesOptions, MyCourseDbContext dbContext)
         {
+            this.logger = logger;
+            this.coursesOptions = coursesOptions;
             this.dbContext = dbContext; 
         }
         
-        public async Task<List<CourseViewModel>> GetCoursesAsync(string search)
+        public async Task<List<CourseViewModel>> GetCoursesAsync(string search, int page)
         {
             search = search ?? "";
+            page = Math.Max(1, page);
+            int limit = coursesOptions.CurrentValue.PerPage;
+            int offset = (page - 1) * limit;
+
             IQueryable<CourseViewModel> queryLinq = dbContext.Courses
                 .Where(course => course.Title.Contains(search))
+                .Skip(offset)
+                .Take(limit)
                 .AsNoTracking()
                 .Select(course => CourseViewModel.FromEntity(course));
 
@@ -33,6 +46,10 @@ namespace MyCourse.Models.Services.Application
 
         public async Task<CourseDetailViewModel> GetCourseAsync(int id)
         {
+            // logging
+            // Critical, Error, Warning, Information, Debug, Trace
+            logger.LogInformation("Course {id} requested", id);
+
             IQueryable<CourseDetailViewModel> queryLinq = dbContext.Courses
                 .AsNoTracking() // Invocandolo rinunciamo al tracciamento delle modifiche in cambio di più velocità, usarlo quindi quando dobbiamo soltanto leggere e non modificare i dati
                 .Include(course => course.Lessons)
