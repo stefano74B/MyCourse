@@ -52,8 +52,8 @@ namespace MyCourse
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
             // AddSingleton crea una sola istanza e la inietta a tutti i componenti che ne hanno bisogno, anche in richieste http diverse
             
-            // services.AddTransient<ICourseService, EfCoreCourseService>();
-            services.AddTransient<ICourseService, AdoNetCourseService>();
+            services.AddTransient<ICourseService, EfCoreCourseService>();
+            // services.AddTransient<ICourseService, AdoNetCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
             services.AddTransient<ICachedCourseService, MemoryCacheCourseService>();
 

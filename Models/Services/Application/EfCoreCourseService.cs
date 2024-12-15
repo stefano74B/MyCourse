@@ -9,6 +9,7 @@ using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.ViewModels;
 using MyCourse.Models.Options;
 using MyCourse.Models.Entities;
+using MyCourse.Models.InputModels;
 
 namespace MyCourse.Models.Services.Application 
 {
@@ -25,27 +26,14 @@ namespace MyCourse.Models.Services.Application
             this.dbContext = dbContext; 
         }
         
-        public async Task<List<CourseViewModel>> GetCoursesAsync(string search, int page, string orderby, bool ascending)
+        public async Task<List<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
         {
-            search = search ?? "";
-            
-            page = Math.Max(1, page);
-            int limit = coursesOptions.CurrentValue.PerPage;
-            int offset = (page - 1) * limit;
-
-            var orderOptions = coursesOptions.CurrentValue.Order;
-            if (!orderOptions.Allow.Contains(orderby))
-            {
-                orderby = orderOptions.By;
-                ascending = orderOptions.Ascending;
-            }
-
             IQueryable<Course> baseQuery = dbContext.Courses;
 
-            switch(orderby)
+            switch(model.OrderBy)
             {
                 case "Title":
-                    if (ascending)
+                    if (model.Ascending)
                     {
                         baseQuery = baseQuery.OrderBy(course => course.Title);
                     }
@@ -55,7 +43,7 @@ namespace MyCourse.Models.Services.Application
                     }
                     break;
                 case "Rating":
-                    if (ascending)
+                    if (model.Ascending)
                     {
                         baseQuery = baseQuery.OrderBy(course => course.Rating);
                     }
@@ -65,7 +53,7 @@ namespace MyCourse.Models.Services.Application
                     }
                     break;
                 case "CurrentPrice":
-                    if (ascending)
+                    if (model.Ascending)
                     {
                         baseQuery = baseQuery.OrderBy(course => course.CurrentPrice.Amount);
                     }
@@ -75,7 +63,7 @@ namespace MyCourse.Models.Services.Application
                     }
                     break;
                 case "Id":
-                    if (ascending)
+                    if (model.Ascending)
                     {
                         baseQuery = baseQuery.OrderBy(course => course.Id);
                     }
@@ -87,9 +75,9 @@ namespace MyCourse.Models.Services.Application
             }
 
             IQueryable<CourseViewModel> queryLinq = baseQuery
-                .Where(course => course.Title.Contains(search))
-                .Skip(offset)
-                .Take(limit)
+                .Where(course => course.Title.Contains(model.Search))
+                .Skip(model.Offset)
+                .Take(model.Limit)
                 .AsNoTracking()
                 .Select(course => CourseViewModel.FromEntity(course));
 

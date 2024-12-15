@@ -10,6 +10,7 @@ using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
 using MyCourse.Models.Exceptions;
 using MyCourse.Models.ValueObjects;
+using MyCourse.Models.InputModels;
 
 namespace MyCourse.Models.Services.Application
 {
@@ -29,28 +30,13 @@ namespace MyCourse.Models.Services.Application
             this.db = db; 
         }
 
-        public async Task<List<CourseViewModel>> GetCoursesAsync(string search, int page, string orderby, bool ascending)
+        public async Task<List<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
         {
-            page = Math.Max(1, page);
-            int limit = coursesOptions.CurrentValue.PerPage;
-            int offset = (page - 1) * limit;
-
-            var orderOptions = coursesOptions.CurrentValue.Order;
-            if (!orderOptions.Allow.Contains(orderby))
-            {
-                orderby = orderOptions.By;
-                ascending = orderOptions.Ascending;
-            }
-
-            //Decidere cosa estrarre dal db (componendo una query SQL)
-            if (orderby == "CurrentPrice")
-            {
-                orderby = "CurrentPrice_Amount";
-            }
-            string direction = ascending ? "ASC" : "DESC";
+            string orderby = model.OrderBy == "CurrentPrice" ? "CurrentPrice_Amount" : model.OrderBy;
+            string direction = model.Ascending ? "ASC" : "DESC";
 
             // {orderby} e {direction} hanno il codice (sql) perchè non sono da parametrizzare, sono parte integrante della stringa SQL, quindi abbiamo creato una classe per 'Sql' per gestirli in 'SqliteDatabaseAccessor.cs'
-            FormattableString query = $"SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Title LIKE {"%" + search + "%"} ORDER BY {(Sql) orderby} {(Sql) direction} LIMIT {limit} OFFSET {offset}";
+            FormattableString query = $"SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Title LIKE {"%" + model.Search + "%"} ORDER BY {(Sql) orderby} {(Sql) direction} LIMIT {model.Limit} OFFSET {model.Offset}";
             DataSet dataSet = await db.QueryAsync(query);
             var dataTable = dataSet.Tables[0];
             var courseList = new List<CourseViewModel>();
