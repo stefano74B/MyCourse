@@ -26,7 +26,7 @@ namespace MyCourse.Models.Services.Application
             this.dbContext = dbContext; 
         }
         
-        public async Task<List<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
+        public async Task<ListViewModel<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
         {
             IQueryable<Course> baseQuery = dbContext.Courses;
 
@@ -76,14 +76,23 @@ namespace MyCourse.Models.Services.Application
 
             IQueryable<CourseViewModel> queryLinq = baseQuery
                 .Where(course => course.Title.Contains(model.Search))
-                .Skip(model.Offset)
-                .Take(model.Limit)
                 .AsNoTracking()
                 .Select(course => CourseViewModel.FromEntity(course));
 
-            List<CourseViewModel> courses = await queryLinq.ToListAsync(); // La query viene eseguito esattamente in questo punto
+            List<CourseViewModel> courses = await queryLinq
+                .Skip(model.Offset)
+                .Take(model.Limit)
+                .ToListAsync(); // La query viene eseguito esattamente in questo punto
 
-            return courses;
+            int totalCount = await queryLinq.CountAsync(); //conta i dati della query
+
+            ListViewModel<CourseViewModel> result = new ListViewModel<CourseViewModel>
+            {
+                Results = courses,
+                TotalCount = totalCount
+            };
+
+            return result;
         }
 
         public async Task<CourseDetailViewModel> GetCourseAsync(int id)
@@ -98,13 +107,50 @@ namespace MyCourse.Models.Services.Application
                 .Where(course => course.Id == id)
                 .Select(course => CourseDetailViewModel.FromEntity(course));
 
-                CourseDetailViewModel viewModel = await queryLinq.SingleAsync(); // Restituisce primo elemento dell'elenco, ma se ne contiene 0 o più di 1 allora solleva un'eccezione
-                // .FirstAsync(); // Restituisce il primo elemento dell'elenco, ma solo se è vuoto solleva un'eccezione, se ne contiene più di 1 prende effettivamente solo il primo
-                // .SingleOrDefaultAsync(); //Tollera il fatto che l'elenco sia vuoto, e in quel caso restituisce null (che è il default dei tipi complessi come in questo caso), oppure se l'elemento contiene più di 1 elemento solleva un'eccezione
-                // .FirstOrDefaultAsync(); // Restituisce null se l'elenco è vuoto e non solleva mai un'eccezione
+            CourseDetailViewModel viewModel = await queryLinq.SingleAsync(); // Restituisce primo elemento dell'elenco, ma se ne contiene 0 o più di 1 allora solleva un'eccezione
+            // .FirstAsync(); // Restituisce il primo elemento dell'elenco, ma solo se è vuoto solleva un'eccezione, se ne contiene più di 1 prende effettivamente solo il primo
+            // .SingleOrDefaultAsync(); //Tollera il fatto che l'elenco sia vuoto, e in quel caso restituisce null (che è il default dei tipi complessi come in questo caso), oppure se l'elemento contiene più di 1 elemento solleva un'eccezione
+            // .FirstOrDefaultAsync(); // Restituisce null se l'elenco è vuoto e non solleva mai un'eccezione
+
+            // per esempio potevamo anche fare così:
+            // CourseDetailViewModel viewModel = await queryLinq.FirstOrDefaultAsync();
+            // if (viewModel == null) 
+            // {
+            //     logger.LogWarning("Course {id} not found", id);
+            //     throw new CourseNotFoundException(id);
+            // }
 
             return viewModel;
         }
 
+        public async Task<List<CourseViewModel>> GetBestRatingCoursesAsync()
+        {
+            CourseListInputModel inputModel = new CourseListInputModel(
+                search: "",
+                page: 1,
+                orderby: "Rating",
+                ascending: false,
+                limit: coursesOptions.CurrentValue.InHome,
+                orderOptions: coursesOptions.CurrentValue.Order
+            );
+
+            ListViewModel<CourseViewModel> result = await GetCoursesAsync(inputModel);
+            return result.Results;
+        }
+
+        public async Task<List<CourseViewModel>> GetMostRecentCoursesAsync()
+        {
+            CourseListInputModel inputModel = new CourseListInputModel(
+                search: "",
+                page: 1,
+                orderby: "Id",
+                ascending: false,
+                limit: coursesOptions.CurrentValue.InHome,
+                orderOptions: coursesOptions.CurrentValue.Order
+            );
+
+            ListViewModel<CourseViewModel> result = await GetCoursesAsync(inputModel);
+            return result.Results;
+        }
     }
 }

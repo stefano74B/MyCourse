@@ -30,13 +30,14 @@ namespace MyCourse.Models.Services.Application
             this.db = db; 
         }
 
-        public async Task<List<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
+        public async Task<ListViewModel<CourseViewModel>> GetCoursesAsync(CourseListInputModel model)
         {
             string orderby = model.OrderBy == "CurrentPrice" ? "CurrentPrice_Amount" : model.OrderBy;
             string direction = model.Ascending ? "ASC" : "DESC";
 
             // {orderby} e {direction} hanno il codice (sql) perchè non sono da parametrizzare, sono parte integrante della stringa SQL, quindi abbiamo creato una classe per 'Sql' per gestirli in 'SqliteDatabaseAccessor.cs'
-            FormattableString query = $"SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Title LIKE {"%" + model.Search + "%"} ORDER BY {(Sql) orderby} {(Sql) direction} LIMIT {model.Limit} OFFSET {model.Offset}";
+            FormattableString query = $@"SELECT Id, Title, ImagePath, Author, Rating, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Title LIKE {"%" + model.Search + "%"} ORDER BY {(Sql) orderby} {(Sql) direction} LIMIT {model.Limit} OFFSET {model.Offset}; 
+            SELECT COUNT(*) FROM Courses WHERE Title LIKE {"%" + model.Search + "%"}";
             DataSet dataSet = await db.QueryAsync(query);
             var dataTable = dataSet.Tables[0];
             var courseList = new List<CourseViewModel>();
@@ -45,7 +46,14 @@ namespace MyCourse.Models.Services.Application
                 CourseViewModel course = CourseViewModel.FromDataRow(courseRow);
                 courseList.Add(course);
             }
-            return courseList;
+
+            ListViewModel<CourseViewModel> result = new ListViewModel<CourseViewModel>
+            {
+                Results = courseList,
+                TotalCount = Convert.ToInt32(dataSet.Tables[1].Rows[0][0])
+            };
+
+            return result;
         }
 
         public async Task<CourseDetailViewModel> GetCourseAsync(int id)
@@ -76,6 +84,36 @@ namespace MyCourse.Models.Services.Application
             }
 
             return courseDetailViewModel;
+        }
+
+        public async Task<List<CourseViewModel>> GetBestRatingCoursesAsync()
+        {
+            CourseListInputModel inputModel = new CourseListInputModel(
+                search: "",
+                page: 1,
+                orderby: "Rating",
+                ascending: false,
+                limit: coursesOptions.CurrentValue.InHome,
+                orderOptions: coursesOptions.CurrentValue.Order
+            );
+
+            ListViewModel<CourseViewModel> result = await GetCoursesAsync(inputModel);
+            return result.Results;
+        }
+
+        public async Task<List<CourseViewModel>> GetMostRecentCoursesAsync()
+        {
+            CourseListInputModel inputModel2 = new CourseListInputModel(
+                search: "",
+                page: 1,
+                orderby: "Id",
+                ascending: false,
+                limit: coursesOptions.CurrentValue.InHome,
+                orderOptions: coursesOptions.CurrentValue.Order
+            );
+
+            ListViewModel<CourseViewModel> result = await GetCoursesAsync(inputModel2);
+            return result.Results;
         }
     }
 }

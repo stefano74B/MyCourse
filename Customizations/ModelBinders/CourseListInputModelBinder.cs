@@ -14,6 +14,7 @@ namespace MyCourse.Customizations.ModelBinders
         {
             this.coursesOptions = coursesOptions;
         }
+
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             //Recuperiamo i valori grazie ai value provider
@@ -22,9 +23,12 @@ namespace MyCourse.Customizations.ModelBinders
             int.TryParse(bindingContext.ValueProvider.GetValue("Page").FirstValue, out int page);
             bool.TryParse(bindingContext.ValueProvider.GetValue("Ascending").FirstValue, out bool ascending);
 
+            // possiamo usare anche questa forma
+            // string page = Convert.ToInt32(bindingContext.ValueProvider.GetValue("Page").FirstValue);
+
             //Creiamo l'istanza del CourseListInputModel
-            // CoursesOptions options = coursesOptions.CurrentValue;
-            var inputModel = new CourseListInputModel(search, page, orderBy, ascending, coursesOptions.CurrentValue);
+            CoursesOptions options = coursesOptions.CurrentValue;
+            var inputModel = new CourseListInputModel(search, page, orderBy, ascending, options.PerPage, options.Order);
 
             //Impostiamo il risultato per notificare che la creazione è avvenuta con successo
             bindingContext.Result = ModelBindingResult.Success(inputModel);

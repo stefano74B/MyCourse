@@ -30,7 +30,7 @@ namespace MyCourse
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddResponseCaching(); // utilizziamo dei servi di caching
+            services.AddResponseCaching(); // utilizziamo dei servizi di caching
 
             services.AddMvc(options => {
                 var homeProfile = new CacheProfile();
@@ -52,8 +52,8 @@ namespace MyCourse
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
             // AddSingleton crea una sola istanza e la inietta a tutti i componenti che ne hanno bisogno, anche in richieste http diverse
             
-            services.AddTransient<ICourseService, EfCoreCourseService>();
-            // services.AddTransient<ICourseService, AdoNetCourseService>();
+            // services.AddTransient<ICourseService, EfCoreCourseService>();
+            services.AddTransient<ICourseService, AdoNetCourseService>();
             services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
             services.AddTransient<ICachedCourseService, MemoryCacheCourseService>();
 
