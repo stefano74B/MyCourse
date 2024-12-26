@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
@@ -46,7 +47,7 @@ namespace MyCourse
                 Configuration.Bind("ResponseCache:Home", homeProfile);
                 
                 options.CacheProfiles.Add("Home", homeProfile);
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             
             // AddTransient crea nuove istanze del serivizio ogni volta che un componente ne ha bisogno e dopo che sono state utilizzate le rimuove.
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
@@ -74,7 +75,7 @@ namespace MyCourse
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime lifetime)
         {
             // if (env.IsDevelopment())
             if (env.IsEnvironment("Development"))
@@ -93,12 +94,20 @@ namespace MyCourse
 
             app.UseStaticFiles();
 
+            // endpoint Routing Middleware
+            app.UseRouting();
+
             app.UseResponseCaching(); // utilizza il caching di ASP.NET che permette di salvare in memoria per un tempo stabilito una view
 
-            // app.UseMvcWithDefaultRoute();
-            app.UseMvc(routeBuilder => {
-                routeBuilder.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
+            // endpoint Middleware
+            app.UseEndpoints(routeBuilder => {
+                routeBuilder.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
+
+            // app.UseMvcWithDefaultRoute();
+            /* app.UseMvc(routeBuilder => {
+                routeBuilder.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
+            }); */
 
             // app.Run(async (context) =>
             // {
