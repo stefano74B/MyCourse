@@ -152,5 +152,10 @@ namespace MyCourse.Models.Services.Application
             ListViewModel<CourseViewModel> result = await GetCoursesAsync(inputModel);
             return result.Results;
         }
+
+        public async Task<CourseDetailViewModel> CreateCourseAsync(CourseCreateInputModel inputModel)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
