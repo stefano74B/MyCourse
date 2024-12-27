@@ -155,7 +155,14 @@ namespace MyCourse.Models.Services.Application
 
         public async Task<CourseDetailViewModel> CreateCourseAsync(CourseCreateInputModel inputModel)
         {
-            throw new NotImplementedException();
+            string title = inputModel.Title;
+            string author = "Mario Rossi";
+
+            var course = new Course(title, author);
+            dbContext.Add(course);
+            await dbContext.SaveChangesAsync();
+
+            return CourseDetailViewModel.FromEntity(course);
         }
     }
 }

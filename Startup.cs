@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
+using MyCourse.Models.Enums;
 
 namespace MyCourse
 {
@@ -57,19 +58,34 @@ namespace MyCourse
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
             // AddSingleton crea una sola istanza e la inietta a tutti i componenti che ne hanno bisogno, anche in richieste http diverse
             
-            // services.AddTransient<ICourseService, EfCoreCourseService>();
-            services.AddTransient<ICourseService, AdoNetCourseService>();
-            services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
+            // usiamo ADO.NET o Entity Framework Core per l'accesso ai dati?
+            var persistence = Persistence.AdoNet;
+            switch (persistence)
+            {
+                case Persistence.AdoNet:
+                    services.AddTransient<ICourseService, AdoNetCourseService>();
+                    services.AddTransient<IDatabaseAccessor, SqliteDatabaseAccessor>();
+                break;
+
+                case Persistence.EfCore:
+                    services.AddTransient<ICourseService, EfCoreCourseService>();
+                    // services.AddDbContext<MyCourseDbContext>();
+                    // preferibile a comando remmato sopra, in quanto può utilizzare context già pronti accorciando i tempi
+                    services.AddDbContextPool<MyCourseDbContext>(optionsBuilder => 
+                    {
+                        string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default");
+                        optionsBuilder.UseSqlite(connectionString);                
+                    }); 
+                break;
+
+            }
+
+
+
             services.AddTransient<ICachedCourseService, MemoryCacheCourseService>();
 
-            // services.AddDbContext<MyCourseDbContext>();
+    
 
-            // preferibile a comando remmato sopra, in quanto può utilizzare context già pronti accorciando i tempi
-            services.AddDbContextPool<MyCourseDbContext>(optionsBuilder => 
-            {
-                string connectionString = Configuration.GetSection("ConnectionStrings").GetValue<string>("Default");
-                optionsBuilder.UseSqlite(connectionString);                
-            }); 
 
             // options
             services.Configure<ConnectionStringsOptions>(Configuration.GetSection("ConnectionStrings"));
