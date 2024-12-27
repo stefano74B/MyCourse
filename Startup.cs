@@ -47,8 +47,12 @@ namespace MyCourse
                 Configuration.Bind("ResponseCache:Home", homeProfile);
                 
                 options.CacheProfiles.Add("Home", homeProfile);
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-            
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+            #if DEBUG
+            .AddRazorRuntimeCompilation()
+            #endif
+            ;
+
             // AddTransient crea nuove istanze del serivizio ogni volta che un componente ne ha bisogno e dopo che sono state utilizzate le rimuove.
             // AddScoped tiene viva l'istanza fino a quando rimaniamo nello stessa richiesta http, poi la distrugge
             // AddSingleton crea una sola istanza e la inietta a tutti i componenti che ne hanno bisogno, anche in richieste http diverse

@@ -74,14 +74,14 @@ namespace MyCourse.Models.Services.Application
                     break;
             }
 
-            IQueryable<CourseViewModel> queryLinq = baseQuery
+            IQueryable<Course> queryLinq = baseQuery
                 .Where(course => course.Title.Contains(model.Search))
-                .AsNoTracking()
-                .Select(course => CourseViewModel.FromEntity(course));
+                .AsNoTracking();
 
             List<CourseViewModel> courses = await queryLinq
                 .Skip(model.Offset)
                 .Take(model.Limit)
+                .Select(course => CourseViewModel.FromEntity(course))
                 .ToListAsync(); // La query viene eseguito esattamente in questo punto
 
             int totalCount = await queryLinq.CountAsync(); //conta i dati della query

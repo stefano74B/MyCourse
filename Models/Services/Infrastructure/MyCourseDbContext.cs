@@ -38,9 +38,12 @@ namespace MyCourse.Models.Services.Infrastructure
                 // mapping per gli owned types
                 entity.OwnsOne(course => course.CurrentPrice, builder => {
                     builder.Property(money => money.Currency)
-                           .HasConversion<string>() // avvisiamo che nel db è un campo text e deve fare una conversione da enum
-                           .HasColumnName("CurrentPrice_Currency"); // questa è superflua perchè questa colonna seguono già la convenzione di nomi
-                    builder.Property(money => money.Amount).HasColumnName("CurrentPrice_Amount"); // questa è superflua perchè questa colonna seguono già la convenzione di nomi
+                        .HasConversion<string>() // avvisiamo che nel db è un campo text e deve fare una conversione da enum
+                        .HasColumnName("CurrentPrice_Currency"); // questa è superflua perchè questa colonna seguono già la convenzione di nomi
+                    
+                    builder.Property(money => money.Amount)
+                        .HasConversion<float>() // in Sqlite non esiste un campo decimal, quindi lo convertiamo in float
+                        .HasColumnName("CurrentPrice_Amount"); // questa è superflua perchè questa colonna seguono già la convenzione di nomi
                 });
 
                 entity.OwnsOne(course => course.FullPrice, builder => {
