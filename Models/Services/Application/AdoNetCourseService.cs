@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using System.Data;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Data.Sqlite;
 using MyCourse.Models.ViewModels;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
 using MyCourse.Models.Exceptions;
 using MyCourse.Models.ValueObjects;
 using MyCourse.Models.InputModels;
+
 
 namespace MyCourse.Models.Services.Application
 {
@@ -121,12 +123,27 @@ namespace MyCourse.Models.Services.Application
             string title = inputModel.Title;
             string author = "Mario Rossi";
 
-            var dataSet = await db.QueryAsync($@"INSERT INTO Courses (Title, Author, ImagePath, CurrentPrice_Currency, CurrentPrice_Amount, FullPrice_Currency, FullPrice_Amount) VALUES ({title}, {author}, '/Courses/default.png', 'EUR', 0, 'EUR', 0);
-                                                     SELECT last_insert_rowid();");
-            
-            int courseId = Convert.ToInt32(dataSet.Tables[0].Rows[0][0]);
-            CourseDetailViewModel course = await GetCourseAsync(courseId);
-            return course;
+            try
+            {
+                DataSet dataSet = await db.QueryAsync($@"INSERT INTO Courses (Title, Author, ImagePath, CurrentPrice_Currency, CurrentPrice_Amount, FullPrice_Currency, FullPrice_Amount) VALUES ({title}, {author}, '/Courses/default.png', 'EUR', 0, 'EUR', 0);
+                                                        SELECT last_insert_rowid();");
+                
+                int courseId = Convert.ToInt32(dataSet.Tables[0].Rows[0][0]);
+                CourseDetailViewModel course = await GetCourseAsync(courseId);
+                return course;
+            }
+            catch (SqliteException exc) when (exc.SqliteErrorCode == 19)
+            {
+                // intercetto l'errore di unicità di Title e genero un errore personalizzato
+                throw new CourseTitleUnavailableException(title, exc);
+            }
+        }
+
+        public async Task<bool> IsTitleAvailableAsync(string title)
+        {
+            DataSet result = await db.QueryAsync($"SELECT COUNT(*) FROM Courses WHERE Title LIKE {title}");
+            bool titleAvailable = Convert.ToInt32(result.Tables[0].Rows[0][0]) == 0;
+            return titleAvailable;
         }
     }
 }
