@@ -55,7 +55,8 @@ namespace MyCourse.Controllers
                 try
                 {
                     CourseDetailViewModel course = await courseService.CreateCourseAsync(inputModel);
-                    return RedirectToAction(nameof(Index));
+                    TempData["ConfirmationMessage"] = "Il corso è stato salvato con successo, perchè non inserisci anche gli altri dati?";
+                    return RedirectToAction(nameof(Edit), new { id = course.Id });
                 }
                 catch (CourseTitleUnavailableException)
                 {
@@ -68,11 +69,41 @@ namespace MyCourse.Controllers
             return View(inputModel);
         }
 
-        public async Task<IActionResult> IsTitleAvailable(string title)
+        public async Task<IActionResult> Edit(int id)
         {
-            bool result = await courseService.IsTitleAvailableAsync(title);
-            return Json(result);
+            ViewData["Title"] = "Modifica corso";
+            CourseEditInputModel inputModel = await courseService.GetCourseForEditingAsync(id);
+            return View(inputModel);            
         }
-        
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(CourseEditInputModel inputModel)
+        {
+
+            // validazione
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    CourseDetailViewModel course = await courseService.EditCourseAsync(inputModel);
+                    TempData["ConfirmationMessage"] = "I dati sono stati salvati con successo";
+                    return RedirectToAction(nameof(Detail), new { id = inputModel.Id });
+                }
+                catch (CourseTitleUnavailableException)
+                {
+                    // Aggiunge, se intercettata, l'eccezione personalizzata che abbiamo creato a livello di servizio per l'unicità del campo title
+                    ModelState.AddModelError(nameof(CourseDetailViewModel.Title), "Questo titolo esiste già");
+                }
+            }   
+
+            ViewData["Title"] = "Modifica corso";
+            return View(inputModel);            
+        }               
+
+        public async Task<IActionResult> IsTitleAvailable(string title, int id = 0)
+        {
+            bool result = await courseService.IsTitleAvailableAsync(title, id);
+            return Json(result);
+        }        
     }
 }

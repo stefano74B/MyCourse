@@ -118,6 +118,23 @@ namespace MyCourse.Models.Services.Application
             return result.Results;
         }
 
+        public async Task<CourseEditInputModel> GetCourseForEditingAsync(int id)
+        {
+            FormattableString query = $@"SELECT Id, Title, Description, ImagePath, Email, FullPrice_Amount, FullPrice_Currency, CurrentPrice_Amount, CurrentPrice_Currency FROM Courses WHERE Id={id}";
+            
+            DataSet dataSet = await db.QueryAsync(query);
+
+            var courseTable = dataSet.Tables[0];
+            if (courseTable.Rows.Count != 1) {
+                logger.LogWarning("Course {id} not found", id);
+                throw new CourseNotFoundException(id);
+            }
+            var courseRow = courseTable.Rows[0];
+            var courseEditInputModel = CourseEditInputModel.FromDataRow(courseRow);
+
+            return courseEditInputModel;            
+        }
+
         public async Task<CourseDetailViewModel> CreateCourseAsync(CourseCreateInputModel inputModel)
         {
             string title = inputModel.Title;
@@ -139,9 +156,24 @@ namespace MyCourse.Models.Services.Application
             }
         }
 
-        public async Task<bool> IsTitleAvailableAsync(string title)
+        public async Task<CourseDetailViewModel> EditCourseAsync(CourseEditInputModel inputModel)
         {
-            DataSet result = await db.QueryAsync($"SELECT COUNT(*) FROM Courses WHERE Title LIKE {title}");
+            try
+            {
+                DataSet dataSet = await db.QueryAsync($"UPDATE Courses SET Title={inputModel.Title}, Description={inputModel.Description}, Email={inputModel.Email}, CurrentPrice_Currency={inputModel.CurrentPrice.Currency}, CurrentPrice_Amount={inputModel.CurrentPrice.Amount}, FullPrice_Currency={inputModel.FullPrice.Currency}, FullPrice_Amount={inputModel.FullPrice.Amount} WHERE Id={inputModel.Id}");
+                CourseDetailViewModel course = await GetCourseAsync(inputModel.Id);
+                return course;                
+            }
+            catch (SqliteException exc) when (exc.SqliteErrorCode == 19)
+            {
+                throw new CourseTitleUnavailableException(inputModel.Title, exc);
+            }
+
+        }
+
+        public async Task<bool> IsTitleAvailableAsync(string title, int id)
+        {
+            DataSet result = await db.QueryAsync($"SELECT COUNT(*) FROM Courses WHERE Title LIKE {title} AND Id <> {id}");
             bool titleAvailable = Convert.ToInt32(result.Tables[0].Rows[0][0]) == 0;
             return titleAvailable;
         }

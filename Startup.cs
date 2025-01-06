@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,10 +13,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Localization;
 using MyCourse.Models.Services.Application;
 using MyCourse.Models.Services.Infrastructure;
 using MyCourse.Models.Options;
 using MyCourse.Models.Enums;
+using MyCourse.Customizations.ModelBinders;
 
 namespace MyCourse
 {
@@ -48,6 +51,12 @@ namespace MyCourse
                 Configuration.Bind("ResponseCache:Home", homeProfile);
                 
                 options.CacheProfiles.Add("Home", homeProfile);
+
+                // serve per il model binder personalizzato che abbiamo creato per il problema del
+                // salvataggio e della visualizzazione di input numerici decimal con culture che
+                // usano . e , invertiti
+                options.ModelBinderProviders.Insert(0, new DecimalModelBinderProvider());
+
             }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
             #if DEBUG
             .AddRazorRuntimeCompilation()
@@ -113,6 +122,16 @@ namespace MyCourse
             }
 
             app.UseStaticFiles();
+
+            //Nel caso volessi impostare una Culture specifica...
+            //Invece se voglio ovviare al problema di una input numerica con decimali devo creare un tag helper e un model binding personalizzati
+            
+            /* var appCulture = CultureInfo.InvariantCulture;
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(appCulture),
+                SupportedCultures = new[] { appCulture }
+            }); */
 
             // endpoint Routing Middleware
             app.UseRouting();

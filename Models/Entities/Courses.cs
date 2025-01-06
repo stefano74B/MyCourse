@@ -63,6 +63,36 @@ namespace MyCourse.Models.Entities
             CurrentPrice = newDiscountPrice;
         }
 
+        public void ChangeEmail(string newEmail)
+        {
+            if (string.IsNullOrEmpty(newEmail))
+            {
+                throw new ArgumentException("Email can't be empty");
+            }
+            Email = newEmail;
+        }
+
+        public void ChangeDescription(string newDescription)
+        {
+            if (newDescription != null)
+            {
+                if (newDescription.Length < 20)
+                {
+                    throw new Exception("Description is too short");
+                }
+                else if (newDescription.Length > 4000)
+                {
+                    throw new Exception("Description is too long");
+                }
+            }
+            Description = newDescription;
+        }
+
+        public void ChangeImagePath(string imagePath)
+        {
+            ImagePath = imagePath;
+        }
+        
         public virtual ICollection<Lesson> Lessons { get; private set; }
     }
 }
