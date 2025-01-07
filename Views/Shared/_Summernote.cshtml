@@ -1,0 +1,30 @@
+
+
+<environment include="Development">
+    <script src="~/lib/summernote/dist/summernote-bs5.min.js"></script>
+    <script src="~/lib/summernote/dist/lang/summernote-it-IT.js"></script>
+    <link rel="stylesheet" href="~/lib/summernote/dist/summernote-bs5.min.css">
+</environment>
+<environment exclude="Development">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/lang/summernote-it-IT.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs5.min.css">
+</environment>
+
+<script>
+    $(document).ready(function () {
+        $('[data-summernote]').each(function() {
+            $(this).summernote({
+                height: 500,
+                lang: 'it-IT',
+                toolbar: [
+                    // [groupName, [list of button]]
+                    ['style', ['bold', 'italic']],
+                    ['para', ['ul', 'ol']],
+                    ['insert', ['video']],
+                    ['view', ['codeview']]
+                ]                
+            });
+        });
+    });
+</script>
